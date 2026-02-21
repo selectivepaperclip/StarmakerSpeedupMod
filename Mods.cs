@@ -18,7 +18,7 @@ public class Mods : BaseUnityPlugin
 {
     public const string NAMESPACE = "StarmakerSpeeupMod";
     public const string TITLE = "starmaker speedup mod - selectivepaperclip";
-    public const string VERSION = "0.0.1";
+    public const string VERSION = "0.0.3";
     internal static BepInEx.Logging.ManualLogSource Log; 
     internal static GameCreator.Runtime.Variables.GlobalNameVariables coreVariables;
 
@@ -63,6 +63,11 @@ public class Mods : BaseUnityPlugin
     {
         if (Input.GetKeyDown(ModConfig.Instance.GetToggleSpeedyTransitionsKey()))
             ModConfig.Instance.ToggleSpeedyTransitions();
+    }
+
+    public void AddMoneyToPlayer(int amount) {
+        int currentValue = int.Parse(Mods.coreVariables.Get("Cash").ToString());
+        Mods.coreVariables.Set("Cash", currentValue + amount);
     }
 
     internal class GamePatches

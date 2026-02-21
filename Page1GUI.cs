@@ -25,10 +25,28 @@ namespace StarmakerSpeedupMod
 
         public void RenderPage()
         {
+            ModsGUI.NewLine(EditPlayerMoney);
             ModsGUI.NewLine(ShowSpeedyTransitionsToggle);
             ModsGUI.NewLine(ShowSpeedyFadeInToggle);
             ModsGUI.NewLine(ShowInstantTextToggle);
             ModsGUI.NewLine(ShowModHintToggle);
+        }
+
+        private void EditPlayerMoney()
+        {
+            GUILayout.Label("Money (Current: " + Mods.coreVariables.Get("Cash") + ")", ModGUIStyles.LabelStyle);
+            if (ModsGUI.CMButton("+1000", ModGUIStyles.BtnStyle))
+            {
+                Mods.Instance.AddMoneyToPlayer(1000);
+            }
+            if (ModsGUI.CMButton("+10000", ModGUIStyles.BtnStyle))
+            {
+                Mods.Instance.AddMoneyToPlayer(10000);
+            }
+            if (ModsGUI.CMButton("+100000", ModGUIStyles.WideBtnStyle))
+            {
+                Mods.Instance.AddMoneyToPlayer(100000);
+            }
         }
 
         private void ShowSpeedyTransitionsToggle()
@@ -37,7 +55,7 @@ namespace StarmakerSpeedupMod
             if (ModsGUI.CMButton(ModConfig.Instance.HasSpeedyTransitions().ToString(), ModGUIStyles.BtnStyle))
                 ModConfig.Instance.ToggleSpeedyTransitions();
         }
-        
+
         private void ShowSpeedyFadeInToggle()
         {
             GUILayout.Label("Speedy fade-ins", ModGUIStyles.LabelStyle);
