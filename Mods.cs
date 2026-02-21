@@ -19,14 +19,25 @@ public class Mods : BaseUnityPlugin
     public const string NAMESPACE = "StarmakerSpeeupMod";
     public const string TITLE = "starmaker speedup mod - selectivepaperclip";
     public const string VERSION = "0.0.1";
+    internal static BepInEx.Logging.ManualLogSource Log; 
+    internal static GameCreator.Runtime.Variables.GlobalNameVariables coreVariables;
 
     // entry point, called once from Unity due to BaseUnityPlugin (MonoBehaviour)
     // Mind the split between awake and start, awake should only handle instance creation and gameObject relevant stuff
     public void Awake()
     {
         Instance = this;
+        Log = base.Logger;
         DontDestroyOnLoad(Instance);
         gameObject.AddComponent<ModsGUI>();
+
+        foreach (GameCreator.Runtime.Variables.GlobalNameVariables globalNameVariables in TRepository<GameCreator.Runtime.Variables.VariablesRepository>.Get.Variables.NameVariables)
+        {
+            if (globalNameVariables.name == "Core")
+            {
+                coreVariables = globalNameVariables;
+            }
+        } 
 
         var harmony = new Harmony(NAMESPACE);
         harmony.PatchAll();
@@ -161,10 +172,38 @@ public class Mods : BaseUnityPlugin
 
             public static void Prefix(GameCreator.Runtime.VisualScripting.InstructionCommonTimeWait __instance, out PropertyGetDecimal __state)
             {
+                // 13 - Entrance
+                // 28 - Upstairs
+                // 69 - Temple
+                // 75 - Mario's Office
+                // 80 - Shrine
+                // 110 - Badlands / Race
+                string[] preserveDelayLevels = ["13", "28", "69", "75", "80", "110"];
                 __state = (PropertyGetDecimal)Traverse.Create(__instance).Field("m_Seconds").GetValue();
                 if (ModConfig.configLoaded && ModConfig.Instance.HasSpeedyTransitions())
                 {
-                    Traverse.Create(__instance).Field("m_Seconds").SetValue(new PropertyGetDecimal(0.01f));
+                    // If the delay is exceptionally long, perhaps it's a timer for a minigame and we should leave it alone.
+                    // Otherwise, set it as low as we can manage.
+                    double originalDelay = __state.Get(GameCreator.Runtime.Common.Args.EMPTY);
+                    if (originalDelay < 10f)
+                    {
+                        object activeLevel = 0;
+                        if (coreVariables.Exists("Active-Level"))
+                        {
+                            activeLevel = coreVariables.Get("Active-Level");
+                        }
+                        double speedyDelay = 0.01f;
+                        string levelString = activeLevel.ToString();
+                        if (preserveDelayLevels.Contains(levelString))
+                        {
+                            // Mods.Log.LogInfo("Preserving existing delay " + originalDelay + " on level " + activeLevel);
+                        }
+                        else
+                        {
+                            // Mods.Log.LogInfo("Updating delay from " + originalDelay + " to " + speedyDelay + " on level " + activeLevel);
+                            Traverse.Create(__instance).Field("m_Seconds").SetValue(new PropertyGetDecimal(speedyDelay));
+                        }
+                    }
                 }
             }
 
