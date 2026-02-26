@@ -18,7 +18,7 @@ public class Mods : BaseUnityPlugin
 {
     public const string NAMESPACE = "StarmakerSpeeupMod";
     public const string TITLE = "starmaker speedup mod - selectivepaperclip";
-    public const string VERSION = "0.0.3";
+    public const string VERSION = "0.0.4";
     internal static BepInEx.Logging.ManualLogSource Log; 
     internal static GameCreator.Runtime.Variables.GlobalNameVariables coreVariables;
 
@@ -45,6 +45,16 @@ public class Mods : BaseUnityPlugin
 
     public static Mods Instance;
     private Mods() { }
+
+    public static Boolean skippingMapAnimations()
+    {
+        if (ModConfig.configLoaded && ModConfig.Instance.HasSkipMapAnimations())
+        {
+            return coreVariables.Get("Active-Level").ToString() == "22";
+        } else {
+            return false;
+        }
+    }
 
     // Start is called once from Unity before first frame and after all awakes are handled, due to BaseUnityPlugin (MonoBehaviour),
     private void Start()
@@ -167,7 +177,7 @@ public class Mods : BaseUnityPlugin
 
 
         [HarmonyPatch]
-        class TimePatch
+        class InstructionCommonTimeWaitPatch
         {
             static MethodBase TargetMethod()
             {
@@ -175,15 +185,16 @@ public class Mods : BaseUnityPlugin
                 return AccessTools.Method(typeof(GameCreator.Runtime.VisualScripting.InstructionCommonTimeWait), "Run");
             }
 
+            // 13 - Entrance
+            // 28 - Upstairs
+            // 69 - Temple
+            // 75 - Mario's Office
+            // 80 - Shrine
+            // 110 - Badlands / Race
+            static string[] preserveDelayLevels = ["13", "28", "69", "75", "80", "110"];
+
             public static void Prefix(GameCreator.Runtime.VisualScripting.InstructionCommonTimeWait __instance, out PropertyGetDecimal __state)
             {
-                // 13 - Entrance
-                // 28 - Upstairs
-                // 69 - Temple
-                // 75 - Mario's Office
-                // 80 - Shrine
-                // 110 - Badlands / Race
-                string[] preserveDelayLevels = ["13", "28", "69", "75", "80", "110"];
                 __state = (PropertyGetDecimal)Traverse.Create(__instance).Field("m_Seconds").GetValue();
                 if (ModConfig.configLoaded && ModConfig.Instance.HasSpeedyTransitions())
                 {
@@ -217,6 +228,119 @@ public class Mods : BaseUnityPlugin
                 if (ModConfig.configLoaded && ModConfig.Instance.HasSpeedyTransitions())
                 {
                     Traverse.Create(__instance).Field("m_Seconds").SetValue(__state);
+                }
+            }
+        }
+
+        static GameCreator.Runtime.Common.Transition removeTransitionDuration(GameCreator.Runtime.Common.Transition originalTransition)
+        {
+            return new GameCreator.Runtime.Common.Transition(0f, originalTransition.EasingType, originalTransition.WaitToComplete);
+        }
+
+        [HarmonyPatch]
+        class InstructionTransformChangePositionPatch
+        {
+            static MethodBase TargetMethod()
+            {
+                // Use reflection to get the protected method
+                return AccessTools.Method(typeof(GameCreator.Runtime.VisualScripting.InstructionTransformChangePosition), "Run");
+            }
+
+            public static void Prefix(GameCreator.Runtime.VisualScripting.InstructionTransformChangePosition __instance, out GameCreator.Runtime.Common.Transition __state)
+            {
+                __state = (GameCreator.Runtime.Common.Transition)Traverse.Create(__instance).Field("m_Transition").GetValue();
+                if (Mods.skippingMapAnimations())
+                {
+                    Traverse.Create(__instance).Field("m_Transition").SetValue(removeTransitionDuration(__state));
+                }
+            }
+
+            public static void Postfix(GameCreator.Runtime.Common.Transition __state, GameCreator.Runtime.VisualScripting.InstructionTransformChangePosition __instance)
+            {
+                if (Mods.skippingMapAnimations())
+                {
+                    Traverse.Create(__instance).Field("m_Transition").SetValue(__state);
+                }
+            }
+        }
+
+        [HarmonyPatch]
+        class InstructionTransformChangeRotationPatch
+        {
+            static MethodBase TargetMethod()
+            {
+                // Use reflection to get the protected method
+                return AccessTools.Method(typeof(GameCreator.Runtime.VisualScripting.InstructionTransformChangeRotation), "Run");
+            }
+
+            public static void Prefix(GameCreator.Runtime.VisualScripting.InstructionTransformChangeRotation __instance, out GameCreator.Runtime.Common.Transition __state)
+            {
+                __state = (GameCreator.Runtime.Common.Transition)Traverse.Create(__instance).Field("m_Transition").GetValue();
+                if (Mods.skippingMapAnimations())
+                {
+                    Traverse.Create(__instance).Field("m_Transition").SetValue(removeTransitionDuration(__state));
+                }
+            }
+
+            public static void Postfix(GameCreator.Runtime.Common.Transition __state, GameCreator.Runtime.VisualScripting.InstructionTransformChangeRotation __instance)
+            {
+                if (Mods.skippingMapAnimations())
+                {
+                    Traverse.Create(__instance).Field("m_Transition").SetValue(__state);
+                }
+            }
+        }
+
+        [HarmonyPatch]
+        class InstructionTransformChangeScalePatch
+        {
+            static MethodBase TargetMethod()
+            {
+                // Use reflection to get the protected method
+                return AccessTools.Method(typeof(GameCreator.Runtime.VisualScripting.InstructionTransformChangeScale), "Run");
+            }
+
+            public static void Prefix(GameCreator.Runtime.VisualScripting.InstructionTransformChangeScale __instance, out GameCreator.Runtime.Common.Transition __state)
+            {
+                __state = (GameCreator.Runtime.Common.Transition)Traverse.Create(__instance).Field("m_Transition").GetValue();
+                if (Mods.skippingMapAnimations())
+                {
+                    Traverse.Create(__instance).Field("m_Transition").SetValue(removeTransitionDuration(__state));
+                }
+            }
+
+            public static void Postfix(GameCreator.Runtime.Common.Transition __state, GameCreator.Runtime.VisualScripting.InstructionTransformChangeScale __instance)
+            {
+                if (Mods.skippingMapAnimations())
+                {
+                    Traverse.Create(__instance).Field("m_Transition").SetValue(__state);
+                }
+            }
+        }
+
+        [HarmonyPatch]
+        class InstructionUICanvasGroupAlphaPatch
+        {
+            static MethodBase TargetMethod()
+            {
+                // Use reflection to get the protected method
+                return AccessTools.Method(typeof(GameCreator.Runtime.VisualScripting.InstructionUICanvasGroupAlpha), "Run");
+            }
+
+            public static void Prefix(GameCreator.Runtime.VisualScripting.InstructionUICanvasGroupAlpha __instance, out GameCreator.Runtime.Common.Transition __state)
+            {
+                __state = (GameCreator.Runtime.Common.Transition)Traverse.Create(__instance).Field("m_Transition").GetValue();
+                if (Mods.skippingMapAnimations())
+                {
+                    Traverse.Create(__instance).Field("m_Transition").SetValue(removeTransitionDuration(__state));
+                }
+            }
+
+            public static void Postfix(GameCreator.Runtime.Common.Transition __state, GameCreator.Runtime.VisualScripting.InstructionUICanvasGroupAlpha __instance)
+            {
+                if (Mods.skippingMapAnimations())
+                {
+                    Traverse.Create(__instance).Field("m_Transition").SetValue(__state);
                 }
             }
         }

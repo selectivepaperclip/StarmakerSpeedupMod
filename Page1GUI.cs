@@ -28,6 +28,7 @@ namespace StarmakerSpeedupMod
             ModsGUI.NewLine(EditPlayerMoney);
             ModsGUI.NewLine(ShowSpeedyTransitionsToggle);
             ModsGUI.NewLine(ShowSpeedyFadeInToggle);
+            ModsGUI.NewLine(ShowSkipMapAnimationsToggle);
             ModsGUI.NewLine(ShowInstantTextToggle);
             ModsGUI.NewLine(ShowModHintToggle);
         }
@@ -61,6 +62,13 @@ namespace StarmakerSpeedupMod
             GUILayout.Label("Speedy fade-ins", ModGUIStyles.LabelStyle);
             if (ModsGUI.CMButton(ModConfig.Instance.HasSpeedyFadeIn().ToString(), ModGUIStyles.BtnStyle))
                 ModConfig.Instance.ToggleSpeedyFadeIn();
+        }
+
+        private void ShowSkipMapAnimationsToggle()
+        {
+            GUILayout.Label("Skip map animations", ModGUIStyles.LabelStyle);
+            if (ModsGUI.CMButton(ModConfig.Instance.HasSkipMapAnimations().ToString(), ModGUIStyles.BtnStyle))
+                ModConfig.Instance.ToggleSkipMapAnimations();
         }
 
         private void ShowInstantTextToggle()

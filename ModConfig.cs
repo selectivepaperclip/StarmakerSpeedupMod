@@ -28,6 +28,9 @@ namespace StarmakerSpeedupMod
         public void ToggleSpeedyTransitions() => GetConfigEntry("ToggleSpeedyTransitions", toggleConfigs).Value = !HasSpeedyTransitions();
         public bool HasSpeedyTransitions() => GetConfigEntry("ToggleSpeedyTransitions", toggleConfigs).Value;
 
+        public void ToggleSkipMapAnimations() => GetConfigEntry("ToggleSkipMapAnimations", toggleConfigs).Value = !HasSkipMapAnimations();
+        public bool HasSkipMapAnimations() => GetConfigEntry("ToggleSkipMapAnimations", toggleConfigs).Value;
+
         public void ToggleInstantText() => GetConfigEntry("ToggleInstantText", toggleConfigs).Value = !HasInstantText();
         public bool HasInstantText() => GetConfigEntry("ToggleInstantText", toggleConfigs).Value;
 
@@ -47,6 +50,7 @@ namespace StarmakerSpeedupMod
                 config.Bind("Toggles", "ToggleSpeedyFadeIn", true, "Toggle if characters fade in fast"),
                 config.Bind("Toggles", "ToggleSpeedyTransitions", true, "Toggle if transitions are being sped up"),
                 config.Bind("Toggles", "ToggleInstantText", true, "Toggle if text is instant"),
+                config.Bind("Toggles", "ToggleSkipMapAnimations", true, "Toggle if map animations are skipped"),
             ];
 
             keyConfigs = [
